@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ind.liuer.mybatis.dao.UserMapper">
+
+    <resultMap id="TBL_USER_MAP" type="ind.liuer.mybatis.domain.User">
+        <id property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="age" column="age"/>
+        <result property="sex" column="sex"/>
+        <result property="email" column="email"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!--根据主键查询用户信息 -->
+    <select id="selectUserByPrimaryKey" resultMap="TBL_USER_MAP">
+        SELECT user_id,
+               username,
+               password,
+               age,
+               sex,
+               email,
+               del_flag,
+               create_time,
+               update_time
+        FROM tbl_user
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 根据条件（用户名、年龄、性别、邮箱、删除标识）查询用户信息列表（分页） -->
+    <select id="selectListUserByCondition" resultMap="TBL_USER_MAP">
+        SELECT
+        user_id,
+        username,
+        age,
+        sex,
+        email,
+        del_flag,
+        create_time,
+        update_time
+        FROM tbl_user
+        <where>
+            <if test="username != null and username != ''">
+                AND username LIKE "%#{username}%"
+            </if>
+            <if test="age != null and age != ''">
+                AND age BETWEEN #{age - 5} AND #{age + 5}
+            </if>
+            <if test="sex != null and sex != ''">
+                AND sex = #{sex}
+            </if>
+            <if test="email != null and email != ''">
+                AND email LIKE "%#{sex}%"
+            </if>
+            <if test="delFlag != null">
+                AND del_flag = #{delFlag}
+            </if>
+            <if test="delFlag == null">
+                AND del_flag = 0
+            </if>
+        </where>
+        <if test="pageNum > 0 and pageSize > 0">
+            LIMIT #{pageNum - 1} * #{pageSize}, #{pageSize}
+        </if>
+    </select>
+
+    <!-- 根据主键修改用户信息（年龄、性别、邮箱） -->
+    <update id="updateUserByPrimaryKey">
+        UPDATE tbl_user
+        SET user_id = #{userId}
+        <if test="age != null and age != ''">
+            AND age = #{age}
+        </if>
+        <if test="age != null and age != ''">
+            AND sex = #{sex}
+        </if>
+        <if test="age != null and age != ''">
+            AND email = #{email}
+        </if>
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- 根据主键修改密码 -->
+    <update id="updateUserPasswordByPrimaryKey">
+        UPDATE tbl_user
+        SET password = #{password}
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- 根据主键修改用户名 -->
+    <update id="updateUserUsernameByPrimaryKey">
+        UPDATE tbl_user
+        SET username = #{username}
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- 根据主键删除用户信息（设置删除标识） -->
+    <update id="deleteUserByPrimaryKey">
+        UPDATE tbl_user
+        SET del_flag = 1
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- 新增一条用户信息（用户名、密码、年龄、性别、邮箱） -->
+    <insert id="insertUser" useGeneratedKeys="true" keyProperty="userId" keyColumn="user_id">
+        INSERT INTO tbl_user(username,
+                             password,
+                             age,
+                             sex,
+                             email)
+        VALUES (#{username},
+                #{password},
+                #{age},
+                #{sex},
+                #{email})
+    </insert>
+
+    <!-- 批量新增用户信息列表（用户名、密码、年龄、性别、邮箱） -->
+    <insert id="batchInsertUsers">
+        INSERT INTO tbl_user(
+        username,
+        password,
+        age,
+        sex,
+        email
+        )
+        VALUES
+        <foreach collection="userList" item="user" separator=",">
+            (
+            #{user.username},
+            #{user.password},
+            #{user.age},
+            #{user.sex},
+            #{user.email}
+            )
+        </foreach>
+    </insert>
+
+</mapper>
